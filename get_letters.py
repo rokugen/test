@@ -41,6 +41,21 @@ def is_valid(family_strokes, first_strokes):
     return reduce(lambda a,b: a and b, is_valids)
 
 #---------------------------------------
+def load_sound():
+    sounds = {}
+    with codecs.open('./Unihan-kJapaneseOnKun.txt', 'r','utf-8-sig') as f:
+        for line in f.readlines():
+            words = line.strip().split('\t')
+            try:
+                code  = ord(words[0])
+            except TypeError:
+                continue
+            kun   = words[1].split(' ')
+            on    = words[2].split(' ') if len(words) >= 3 else []
+            sounds[code] = { 'kun' : kun, 'on' : on }
+    return sounds
+
+#---------------------------------------
 def load_jis0208():
     lines = file('./JIS0208.TXT', 'r').readlines()
     lines = filter(lambda a: a[0] != '#', lines)
@@ -100,10 +115,8 @@ def valid_c(code):
     return True
 
 #---------------------------------------
-def get_c(code, all_codes):
-    news = ','.join(map(lambda a: str(a), all_codes['new'][code]))
-    olds = ','.join(map(lambda a: str(a), all_codes['old'][code]))
-    return u'%s(%s/%s)' % (unichr(code), news, olds)
+def get_c(code):
+    return u'%s' % (unichr(code))
 
 #---------------------------------------
 def detect_func(args):
@@ -150,26 +163,46 @@ def get_relative(all_codes, new_valids, old_valids):
     return result
 
 #---------------------------------------
+def write_result(result, all_codes, sounds):
+
+    print 'writing result file...'
+    with codecs.open('./out.csv', 'w','utf-8-sig') as f:
+        for k,v in sorted(result.items(), key = lambda a: all_codes['new'][a[0]][0]):   # 画数昇順
+            f.write(get_c(k))
+            f.write(',')
+            f.write('%d' % all_codes['new'][k][0])
+            f.write(',')
+
+            if sounds.has_key(k):
+                on_values  = [sound for sound in sounds[k]['on']]
+                kun_values = [sound for sound in sounds[k]['kun']]
+                f.write('"%s"' % u', '.join(on_values))
+                f.write(',')
+                f.write('"%s"' % u', '.join(kun_values))
+            else:
+                f.write(',')
+
+            f.write(',')
+            for chr in map(lambda a: get_c(a), v):
+                f.write(chr)
+                f.write(',')
+            f.write('\r\n')
+
+#---------------------------------------
 if __name__ == '__main__':
 
     start_time = time.time()
 
     new_valids  = get_valid_strokes([12,5])
     old_valids  = get_valid_strokes([13,5])
+    sounds      = load_sound()
+
     jis0208     = load_jis0208()
     all_codes   = load_strokes(jis0208)
     all_codes   = split_new_old(all_codes)
 
     result = get_relative(all_codes, new_valids, old_valids)
-
-    print 'writing result file...'
-    with codecs.open('./out.csv', 'w','utf-8-sig') as f:
-        for k,v in sorted(result.items(), key = lambda a: a[0]):
-            f.write(get_c(k, all_codes))
-            f.write(',')
-            for chr in map(lambda a: get_c(a, all_codes), v):
-                f.write(chr)
-                f.write(',')
-            f.write('\r\n')
+    write_result(result, all_codes, sounds)
 
     print 'total time = %f' % (time.time() - start_time)
+
