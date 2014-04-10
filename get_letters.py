@@ -106,24 +106,6 @@ def get_c(code, all_codes):
     return u'%s(%s/%s)' % (unichr(code), news, olds)
 
 #---------------------------------------
-def check(args):
-
-    all_codes, valid_code, target_strokes = (args)
-    print 'checking "%X"...' % valid_code
-
-    intersection = lambda a,b: len(set(a) & set(b)) > 0
-
-    result = []
-    for check_code in all_codes['new'].keys():
-
-        if not intersection(all_codes['new'][check_code], target_strokes): continue
-        if not intersection(all_codes['old'][check_code], target_strokes): continue
-
-        result.append(check_code)
-
-    return (valid_code, result)
-
-#---------------------------------------
 def detect_func(args):
 
     master_code, all_codes, new_valids, old_valids = (args)
@@ -165,37 +147,6 @@ def get_relative(all_codes, new_valids, old_valids):
     result = filter(lambda a: a != None, result)
     result = dict(result)
 
-    """
-    intersection = lambda a,b: len(set(a) & set(b)) > 0
-    result = {}
-    for master_code in sorted(all_codes['new'].keys()):
-
-        print 'checking "%X"...' % master_code
-
-        new_stroke  = all_codes['new'][master_code][0] # 新字体は１文字である事を保証して、プログラムをシンプルにする
-        old_strokes = all_codes['old'][master_code]
-
-        if not new_valids.has_key(new_stroke): continue
-        if len(old_strokes) > 0 and not intersection(old_strokes, old_valids.keys()): continue
-
-        # 1文字目確定
-        result[master_code] = []
-
-        # 2文字目が不要なパターンを評価
-        if 0 in new_valids[new_stroke]:
-            result[master_code].append('')  # 2文字目不要を明示
-
-        # 2文字目
-        for master_code2 in sorted(all_codes['new'].keys()):
-                        
-            new_stroke2  = all_codes['new'][master_code2][0] # 新字体は１文字である事を保証して、プログラムをシンプルにする
-            old_strokes2 = all_codes['old'][master_code2]
-
-            if not new_stroke2 in new_valids[new_stroke]: continue
-            if len(old_strokes2) > 0 and not intersection(old_strokes2, old_valids.keys()): continue
-
-            result[master_code].append(master_code2)
-    """
     return result
 
 #---------------------------------------
@@ -209,38 +160,7 @@ if __name__ == '__main__':
     all_codes   = load_strokes(jis0208)
     all_codes   = split_new_old(all_codes)
 
-    """
-    print '---- new_valids ----'
-    for k,v in new_valids.items(): print '%d : %s' % (k, str(v))
-    print '---- old valids ----'
-    for k,v in old_valids.items(): print '%d : %s' % (k, str(v))
-    print '---- new codes ----'
-    for k,v in sorted(all_codes['new'].items(), key = lambda a: a[0]): print '%X : %s' % (k, str(v))
-
-    """
     result = get_relative(all_codes, new_valids, old_valids)
-
-    """
-    result_new  = get_strokes(all_codes['new'], new_valids)
-    result_old  = get_strokes(all_codes['old'], old_valids)
-
-    args = [(all_codes, k, v) for k, v in result_new.items()]
-    result = Pool().map(check, args)
-    result = dict(result)
-
-    result = {}
-    intersection = lambda a,b: len(set(a) & set(b)) > 0
-    for valid_code, target_strokes in :
-
-        print 'checking "%X"...' % valid_code
-        result[valid_code] = []
-        for check_code in all_codes['new'].keys():
-
-            if not intersection(all_codes['new'][check_code], target_strokes): continue
-            if not intersection(all_codes['old'][check_code], target_strokes): continue
-
-            result[valid_code].append(check_code)
-    """
 
     print 'writing result file...'
     with codecs.open('./out.csv', 'w','utf-8-sig') as f:
