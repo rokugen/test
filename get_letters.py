@@ -12,8 +12,14 @@ import time
 from multiprocessing import Pool
 
 STROKES_FILE = u'./ucs-strokes.txt'
+
+"""
 LUCK_STROKES = [1, 3, 5, 6, 7, 8, 11, 13, 15, 16, 17, 18, 21, 23, 24, 25, 26, 27, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41,42,43,44,45,47,48,49,51,52,53,57,58]
-MAX_STROKES  = 16
+"""
+LUCK_STROKES = [1,3,5,6,7,8,11,13,15,16,17,18,21,23,24,25,29,31,32,33,37,39,41,45,47,48,52,57,58,61,63,65,67,68,71,73,75,77,78,81]
+
+MAX_STROKES  = 100
+
 MAX_LETTERS  = 2
 
 #---------------------------------------
@@ -122,15 +128,17 @@ def get_c(code):
 def detect_func(args):
 
     master_code, all_codes, new_valids, old_valids = (args)
+
     print 'checking "%X"...' % master_code
 
-    new_stroke  = all_codes['new'][master_code][0] # 新字体は１文字である事を保証して、プログラムをシンプルにする
-    old_strokes = all_codes['old'][master_code]
-
-    intersection = lambda a,b: len(set(a) & set(b)) > 0
+    new_stroke = all_codes['new'][master_code][0]     # 新字体は１文字である事を保証して、プログラムをシンプルにする
+    if len(all_codes['old'][master_code]) > 0:
+        old_stroke = all_codes['old'][master_code][0] # 旧字体も同様に処理
+    else:
+        old_stroke = new_stroke                       # 旧字体が存在しない場合は新字体を参照する
 
     if not new_valids.has_key(new_stroke): return
-    if len(old_strokes) > 0 and not intersection(old_strokes, old_valids.keys()): return
+    if not old_valids.has_key(old_stroke): return
 
     # 1文字目確定
     result = []
@@ -141,12 +149,15 @@ def detect_func(args):
 
     # 2文字目
     for master_code2 in sorted(all_codes['new'].keys()):
-                    
-        new_stroke2  = all_codes['new'][master_code2][0] # 新字体は１文字である事を保証して、プログラムをシンプルにする
-        old_strokes2 = all_codes['old'][master_code2]
+
+        new_stroke2  = all_codes['new'][master_code2][0]     # 新字体は１文字である事を保証して、プログラムをシンプルにする
+        if len(all_codes['old'][master_code2]) > 0:
+            old_stroke2 = all_codes['old'][master_code2][0] # 旧字体も同様に処理
+        else:
+            old_stroke2 = new_stroke2                       # 旧字体が存在しない場合は新字体を参照する
 
         if not new_stroke2 in new_valids[new_stroke]: continue
-        if len(old_strokes2) > 0 and not intersection(old_strokes2, old_valids.keys()): continue
+        if not old_stroke2 in old_valids[old_stroke]: continue
 
         result.append(master_code2)
 
@@ -195,6 +206,10 @@ if __name__ == '__main__':
 
     new_valids  = get_valid_strokes([12,5])
     old_valids  = get_valid_strokes([13,5])
+
+    for k,v in new_valids.items(): print k,v
+    for k,v in old_valids.items(): print k,v
+
     sounds      = load_sound()
 
     jis0208     = load_jis0208()
