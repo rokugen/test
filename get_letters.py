@@ -165,6 +165,9 @@ def detect_func(args):
 
         result.append(master_code2)
 
+    # 候補が0件だった場合は選考落ち
+    if len(result) == 0: return
+
     return (master_code, result)
 
 #---------------------------------------
@@ -182,7 +185,8 @@ def write_result(result, all_codes, sounds):
 
     print 'writing result file...'
     with codecs.open('./out.csv', 'w','utf-8-sig') as f:
-        for k,v in sorted(result.items(), key = lambda a: all_codes['new'][a[0]][0]):   # 画数昇順
+        sort_func = lambda a: (all_codes['new'][a[0]][0], a[0]) # key0:画数, key1:文字コード
+        for k,v in sorted(result.items(), key = sort_func):
             f.write(get_c(k))
             f.write(',')
             f.write('%d' % all_codes['new'][k][0])
