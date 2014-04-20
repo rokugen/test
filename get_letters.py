@@ -202,7 +202,8 @@ def write_result(result, all_codes, sounds):
                 f.write(',')
 
             f.write(',')
-            for chr in map(lambda a: get_c(a), v):
+            tmp = sorted(v, key = lambda a: (all_codes['new'][a], a))
+            for chr in map(lambda a: get_c(a), tmp):
                 f.write(chr)
                 f.write(',')
             f.write('\r\n')
