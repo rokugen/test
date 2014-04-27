@@ -243,7 +243,8 @@ if __name__ == '__main__':
             old_valids[i] = range(MAX_STROKES)
 
     for k,v in new_valids.items(): print k,v
-    for k,v in old_valids.items(): print k,v
+    if OLD_STROKE_ENABLE:
+        for k,v in old_valids.items(): print k,v
 
     sounds      = load_sound()
 
